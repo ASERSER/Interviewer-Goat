@@ -1,0 +1,51 @@
+# Rust
+/target/
+**/*.rs.bk
+Cargo.lock
+
+# Tauri
+/src-tauri/target/
+/src-tauri/Cargo.lock
+
+# Node.js
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Build outputs
+/dist/
+/build/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+
+# Models and large files
+*.bin
+*.gguf
+models/
+
+# Logs
+*.log
+
+# Environment variables
+.env
+.env.local
+.env.production
+
+# Database
+*.db
+*.sqlite
+*.sqlite3
+
+# Temporary files
+*.tmp
+*.temp

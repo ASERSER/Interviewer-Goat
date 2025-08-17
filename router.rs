@@ -1,0 +1,1 @@
+pub fn route(context: Context) -> Intent { /* ... */ }

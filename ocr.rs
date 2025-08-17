@@ -1,0 +1,1 @@
+pub fn capture_window() -> OcrResult { /* ... */ }

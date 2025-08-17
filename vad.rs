@@ -1,0 +1,1 @@
+pub fn process_audio_frame(input: &[f32]) -> VadResult { /* ... */ }

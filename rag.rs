@@ -1,0 +1,1 @@
+pub fn query_memory(query: &str) -> Vec<VectorItem> { /* ... */ }
