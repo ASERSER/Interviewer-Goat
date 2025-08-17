@@ -1,7 +1,15 @@
 use std::time::Duration;
 use tokio::time::sleep;
 use tracing::{info, error};
-use meeting_copilot::audio::AudioPipeline;
+
+#[path = "src/audio.rs"]
+mod audio;
+#[path = "src/vad.rs"]
+mod vad;
+#[path = "src/asr.rs"]
+mod asr;
+
+use audio::AudioPipeline;
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {

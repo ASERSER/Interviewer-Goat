@@ -13,7 +13,7 @@ struct WhisperContext {
     _placeholder: (),
 }
 
-#[derive(Debug, Clone)]
+#[derive(Clone, Debug, serde::Serialize)]
 pub struct TranscriptResult {
     pub text: String,
     pub confidence: f32,

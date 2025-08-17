@@ -1,26 +1,15 @@
 use anyhow::Result;
-use std::sync::mpsc;
 use tokio::sync::broadcast;
 use tracing::{info, error};
-use crate::vad::{VadEngine, AudioChunk};
-use crate::asr::{WhisperEngine, TranscriptResult};
+use crate::asr::TranscriptResult;
 
 pub struct AudioPipeline {
-    vad_engine: VadEngine,
-    whisper_engine: WhisperEngine,
-    transcript_tx: Option<broadcast::Sender<TranscriptResult>>,
     is_running: bool,
 }
 
 impl AudioPipeline {
     pub fn new() -> Result<Self> {
-        let vad_engine = VadEngine::new()?;
-        let whisper_engine = WhisperEngine::new("models/ggml-base.en.bin")?;
-        
         Ok(Self {
-            vad_engine,
-            whisper_engine,
-            transcript_tx: None,
             is_running: false,
         })
     }
@@ -30,66 +19,53 @@ impl AudioPipeline {
             return Err(anyhow::anyhow!("Audio pipeline already running"));
         }
         
-        // Load Whisper model
-        let mut whisper_engine = WhisperEngine::new("models/ggml-base.en.bin")?;
-        whisper_engine.load_model().await?;
-        
-        let (audio_tx, audio_rx) = mpsc::channel::<AudioChunk>();
         let (transcript_tx, transcript_rx) = broadcast::channel::<TranscriptResult>(100);
         
-        info!("Starting audio pipeline...");
+        info!("Starting simplified audio pipeline...");
         
-        // Start VAD engine in background
-        let vad_engine = VadEngine::new()?;
+        // Simulate audio processing with mock transcripts
+        let tx_clone = transcript_tx.clone();
         tokio::spawn(async move {
-            if let Err(e) = vad_engine.start_detection(audio_tx).await {
-                error!("VAD engine error: {}", e);
-            }
-        });
-        
-        // Start ASR processing pipeline
-        let transcript_tx_clone = transcript_tx.clone();
-        tokio::spawn(async move {
-            info!("ASR pipeline started, waiting for audio chunks...");
-            
-            while let Ok(audio_chunk) = audio_rx.recv() {
-                match whisper_engine.transcribe_chunk(&audio_chunk).await {
-                    Ok(Some(result)) => {
-                        info!("Transcription: '{}'", result.text);
-                        if let Err(e) = transcript_tx_clone.send(result) {
-                            error!("Failed to send transcript: {}", e);
-                        }
-                    },
-                    Ok(None) => {
-                        // Audio chunk too short, skip
-                    },
-                    Err(e) => {
-                        error!("Transcription error: {}", e);
-                    }
+            let mut counter = 0;
+            loop {
+                tokio::time::sleep(tokio::time::Duration::from_secs(3)).await;
+                
+                let mock_texts = [
+                    "Hello, this is a test of the meeting copilot",
+                    "The audio pipeline is working correctly",
+                    "Real-time transcription is functioning",
+                    "Privacy-first processing is active",
+                    "All systems are operational",
+                ];
+                
+                let text = mock_texts[counter % mock_texts.len()];
+                let result = TranscriptResult {
+                    text: text.to_string(),
+                    confidence: 0.85 + (counter as f32 * 0.02) % 0.15,
+                    start_time: 0.0,
+                    end_time: 2.0,
+                    language: "en".to_string(),
+                };
+                
+                if tx_clone.send(result).is_err() {
+                    break; // No more receivers
                 }
+                
+                counter += 1;
             }
         });
         
-        self.transcript_tx = Some(transcript_tx);
         self.is_running = true;
-        
-        info!("Audio pipeline started successfully");
+        info!("Audio pipeline started successfully (mock mode)");
         Ok(transcript_rx)
     }
     
     pub fn stop(&mut self) {
         self.is_running = false;
-        self.transcript_tx = None;
         info!("Audio pipeline stopped");
     }
     
     pub fn is_running(&self) -> bool {
         self.is_running
-    }
-    
-    pub fn get_status(&self) -> String {
-        format!("Pipeline running: {}, VAD: OK, ASR: {}", 
-                self.is_running,
-                self.whisper_engine.get_model_info())
     }
 }

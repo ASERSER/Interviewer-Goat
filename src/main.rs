@@ -1,15 +1,10 @@
-use tauri::Manager;
+use tauri::{Manager, AppHandle, Emitter};
 
 mod audio;
 mod vad;
 mod asr;
-mod guardrails;
-mod router;
-mod orchestrator;
-mod storage;
 
 use audio::AudioPipeline;
-use asr::TranscriptResult;
 use tracing_subscriber;
 
 #[derive(Clone, serde::Serialize)]
@@ -21,30 +16,21 @@ struct SuggestionPayload {
 }
 
 #[tauri::command]
-async fn start_listening(app_handle: tauri::AppHandle) -> Result<(), String> {
-    let mut audio_pipeline = AudioPipeline::new().map_err(|e| e.to_string())?;
+async fn start_listening(app: AppHandle) -> Result<String, String> {
+    let mut pipeline = AudioPipeline::new().map_err(|e| e.to_string())?;
     
-    // Start audio processing and get transcript stream
-    let mut transcript_rx = audio_pipeline.start_streaming().await.map_err(|e| e.to_string())?;
-    
-    // Forward transcripts to frontend
-    let app_handle_clone = app_handle.clone();
-    tokio::spawn(async move {
-        while let Ok(transcript) = transcript_rx.recv().await {
-            let payload = SuggestionPayload {
-                id: uuid::Uuid::new_v4().to_string(),
-                content: transcript.text,
-                suggestion_type: "transcript".to_string(),
-                confidence: transcript.confidence,
-            };
-            
-            if let Err(e) = app_handle_clone.emit_all("transcript", &payload) {
-                eprintln!("Failed to emit transcript: {}", e);
-            }
+    match pipeline.start_streaming().await {
+        Ok(mut rx) => {
+            // Spawn task to listen for transcripts and emit to frontend
+            tokio::spawn(async move {
+                while let Ok(transcript) = rx.recv().await {
+                    let _ = app.emit("transcript", transcript);
+                }
+            });
+            Ok("Started listening".to_string())
         }
-    });
-    
-    Ok(())
+        Err(e) => Err(format!("Failed to start listening: {}", e))
+    }
 }
 
 #[tauri::command]
@@ -54,7 +40,7 @@ async fn stop_listening() -> Result<(), String> {
 }
 
 #[tauri::command]
-async fn copy_suggestion(suggestion_id: String) -> Result<(), String> {
+async fn copy_suggestion(_suggestion_id: String) -> Result<(), String> {
     // Copy suggestion to clipboard
     Ok(())
 }
@@ -69,7 +55,7 @@ fn main() {
             stop_listening,
             copy_suggestion
         ])
-        .setup(|app| {
+        .setup(|_app| {
             tracing::info!("Meeting Copilot MVP starting up...");
             
             // Request microphone permissions on macOS
