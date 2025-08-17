@@ -1,1 +1,0 @@
-pub fn generate_suggestion(context: Context) -> TokenStream { /* ... */ }
