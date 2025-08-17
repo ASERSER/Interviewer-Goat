@@ -1,7 +1,13 @@
 [package]
 name = "meeting-copilot"
 version = "0.1.0"
+description = "Privacy-first meeting copilot MVP"
+authors = ["Meeting Copilot Team"]
+license = "MIT"
+repository = ""
 edition = "2021"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [build-dependencies]
 tauri-build = { version = "1.0", features = [] }
@@ -25,8 +31,11 @@ reqwest = { version = "0.11", features = ["json"] }
 candle-core = "0.3"
 candle-transformers = "0.3"
 candle-nn = "0.3"
-regex = "1"
 
 [features]
 default = ["custom-protocol"]
 custom-protocol = ["tauri/custom-protocol"]
+
+[[bin]]
+name = "meeting-copilot"
+path = "src/main.rs"
