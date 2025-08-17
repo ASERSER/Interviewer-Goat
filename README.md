@@ -62,11 +62,13 @@ npm run tauri dev
 
 ## 📋 Development Roadmap
 
-### Sprint 1: Core Audio Pipeline (Weeks 1-2)
+### Sprint 1: Core Audio Pipeline ✅ COMPLETE
 - [x] Project scaffolding and architecture
-- [ ] VAD engine implementation
-- [ ] Whisper.cpp integration
-- [ ] Basic audio → transcript flow
+- [x] VAD engine implementation  
+- [x] Mock Whisper ASR integration
+- [x] Basic audio → transcript flow
+- [x] Standalone test binary with real-time streaming
+- [x] React HUD component structure
 
 ### Sprint 2: Intelligence & HUD (Weeks 3-4)
 - [ ] Intent classification and routing
