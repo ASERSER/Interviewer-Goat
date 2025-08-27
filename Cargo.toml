@@ -2,10 +2,15 @@
 name = "meeting-copilot"
 version = "0.1.0"
 edition = "2021"
+default-run = "meeting-copilot"
 
 [[bin]]
 name = "test_audio"
 path = "test_audio.rs"
+
+[[bin]]
+name = "test_real_audio"
+path = "test_real_audio.rs"
 
 [build-dependencies]
 tauri-build = { version = "2.0", features = [] }
